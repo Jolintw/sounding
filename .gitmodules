@@ -1,0 +1,3 @@
+[submodule "mypkgs"]
+	path = mypkgs
+	url = https://github.com/Jolintw/mypkgs.git
