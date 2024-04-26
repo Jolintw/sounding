@@ -1,3 +1,6 @@
 [submodule "mypkgs"]
 	path = mypkgs
 	url = https://github.com/Jolintw/mypkgs.git
+[submodule "atmospkg"]
+	path = atmospkg
+	url = https://github.com/Jolintw/atmospkg.git
