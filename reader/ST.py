@@ -8,7 +8,7 @@ class STreader:
             self.getdirlist(STpath)
 
     def readL4(self, filepath):
-        varnamedict = {"time":0, "P":4, "T":5, "Td":6, "RH":7, "U":8, "V":9, "WS":10, "WD":11, "Lon":14, "lat":15, "GPSAlt":16}
+        varnamedict = {"time":0, "P":4, "T":5, "Td":6, "RH":7, "U":8, "V":9, "WS":10, "WD":11, "Lon":14, "lat":15, "height":16}
         vardict = {}
 
         time = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(0))
@@ -20,6 +20,7 @@ class STreader:
         
         f = open(filepath)
         lines = f.readlines()
+        f.close()
         timestr = lines[5].split(":", 1)[1].strip()
         fmt = "%Y, %m, %d, %H:%M:%S%z"
         zerotime = dd.strptime(timestr+"+0000", fmt).timestamp()
