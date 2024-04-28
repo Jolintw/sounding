@@ -20,7 +20,7 @@ class STreader:
         
         f = open(filepath)
         lines = f.readlines()
-        timestr = lines[5].split(":").strip()
+        timestr = lines[5].split(":", 1)[1].strip()
         fmt = "%Y, %m, %d, %H:%M:%S%z"
         zerotime = dd.strptime(timestr+"+0000", fmt).timestamp()
         vardict["timestamp"] = zerotime + vardict["time"]
@@ -31,7 +31,7 @@ class STreader:
     
     def getL4p_PBLlist(self, STpath = None):
         filename = "L4p_PBL.eol"
-        return self.getfilelist(self, filename, STpath)
+        return self.getfilelist(filename, STpath)
 
     def getfilelist(self, filename, STpath = None):
         if STpath is None:
@@ -41,10 +41,10 @@ class STreader:
         return [ST / filename for ST in STlist]
     
     def getdirlist(self, STpath):
-        if list(STpath.glob())[0].parts[-1] == "ST":
+        if list(STpath.glob("*"))[0].parts[-1] == "ST":
             STpath = STpath / "ST"
         self.STpath = STpath
-        STlist = list(STpath.glob())
+        STlist = list(STpath.glob("*"))
         self.STlist = STlist
         return STlist
     
