@@ -1,6 +1,6 @@
 from pathlib import Path
 
-ROOT = Path("D:\NOR10069")
+ROOT = Path("D:/NOR10069")
 
 DATA = ROOT / "data"
 STDATA = DATA / "ST"
