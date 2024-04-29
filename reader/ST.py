@@ -2,13 +2,15 @@ import numpy as np
 from atmospkg.calculation import saturation_mixingratio
 from datetime import datetime as dd
 
+release_height = 6 # the height of the place to release balloon (meter)
+
 class STreader:
     def __init__(self, STpath = None):
         if not STpath is None:
             self.getdirlist(STpath)
 
     def readL4(self, filepath):
-        varnamedict = {"time":0, "P":4, "T":5, "Td":6, "RH":7, "U":8, "V":9, "WS":10, "WD":11, "Lon":14, "lat":15, "height":16}
+        varnamedict = {"time":0, "P":4, "T":5, "Td":6, "RH":7, "U":8, "V":9, "WS":10, "WD":11, "Lon":14, "lat":15, "height":13}
         vardict = {}
 
         time = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(0))
@@ -17,7 +19,7 @@ class STreader:
             vardict[key] = np.loadtxt(filepath, skiprows=14+launch_index, unpack=True, usecols=(value))
         vardict["qv"]  = saturation_mixingratio(vardict["Td"], vardict["P"], Tunit="degC", Punit="hPa")
         vardict["qvs"] = saturation_mixingratio(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
-        
+        vardict["height"] = self._height_modify(vardict["height"], release_height)
         f = open(filepath)
         lines = f.readlines()
         f.close()
@@ -56,3 +58,6 @@ class STreader:
                 if np.mean(dts[i_dt+1:i_dt+11]) < 10:
                     return i_dt
 
+    def _height_modify(self, height, release_height):
+        bias = height[0] - release_height
+        return height - bias
