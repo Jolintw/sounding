@@ -27,7 +27,7 @@ class STreader:
         vardict["timestamp"] = zerotime + vardict["time"]
         return vardict
     
-    def getlaunchtime(self, vardict):
+    def getfirsttime(self, vardict):
         return dd.fromtimestamp(vardict["timestamp"][0])
     
     def getL4p_PBLlist(self, STpath = None):
