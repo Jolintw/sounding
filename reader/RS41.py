@@ -29,7 +29,7 @@ class RS41reader:
             filepath = tempname
             asc = np.loadtxt(filepath, delimiter=',', skiprows=4)[:,-1]
         
-        mask = asc >= 0
+        mask = (asc >= 0)
         for key, value in varnamedict.items():
             vardict[key] = np.loadtxt(filepath, skiprows=4, unpack=True, usecols=(value))[mask]
         vardict["qvs"] = saturation_mixingratio(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
