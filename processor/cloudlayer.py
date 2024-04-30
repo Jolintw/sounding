@@ -6,6 +6,14 @@ Zhang2010RHtable["minRH"]  = [[0.92, 0.90], [0.90, 0.88], [0.88, 0.75], 0.75]
 Zhang2010RHtable["maxRH"]  = [[0.95, 0.93], [0.93, 0.90], [0.90, 0.80], 0.80]
 Zhang2010RHtable["interRH"] = [[0.84, 0.82], [0.80, 0.78], [0.78, 0.70], 0.70]
     
+def find_cloud_layer(RH, H):
+    """
+    method from Zhang (2010) https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2010JD014030
+    :param RH: relative humidity from sounding, range 0~1
+    :param H: Height from sounding, unit: meter
+    """
+    moist_layer, RHthreshold = find_moist_layer(RH, H)
+    cloud_layer = cloud_layer_limitation(moist_layer, RHthreshold)
 
 def find_moist_layer(RH, H):
     """
@@ -13,13 +21,63 @@ def find_moist_layer(RH, H):
     :param RH: relative humidity, range 0~1
     :param H: Height, unit: meter
     """
+    RHTC = RHThresholdCalculator(Zhang2010RHtable)
+    RHthreshold = RHTC.get_RH_threshold(H)
+    moist_layer = find_layers_exceed_RHthreshold(RH, RHthreshold, H)
+    moist_layer = moist_layers_limitation(moist_layer)
+    return moist_layer, RHthreshold
 
-def find_cloud_layer():
-    """
-    method from Zhang (2010) https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2010JD014030
-    :param RH: relative humidity from sounding, range 0~1
-    :param H: Height from sounding, unit: meter
-    """
+
+def find_layers_exceed_RHthreshold(RH, RHthreshold, H):
+    RH_exceedminRH = RH > RHthreshold["minRH"]
+    RH_exceedminRH[np.isnan(RH)] = np.nan
+    RH_exceedminRH_int = RH_exceedminRH.astype(int)
+    RH_exceedminRH_int = np.append([0], RH_exceedminRH_int) # pad a dry layer to the ground
+    RH_exceedminRH_int = np.append(RH_exceedminRH_int, [0]) # pad a dry layer to the end of sounding
+    diff = RH_exceedminRH_int[1:] - RH_exceedminRH_int[:-1] 
+    # 1 in diff means next element is first element of Trues in RH_exceedminRH
+    # -1 means the last element in Trues
+    full_ind = np.arange(len(RH), dtype=int)
+    moist_layer = {}
+    moist_layer["bottom_ind"] = full_ind[diff==1] + 1
+    moist_layer["top_ind"]    = full_ind[diff==-1]
+    moist_layer["RH_max"]     = np.array([np.nanmax(RH[bi:ti+1]) for bi, ti in zip(moist_layer["bottom_ind"], moist_layer["top_ind"])])
+    moist_layer["bottom_H"]   = H[moist_layer["bottom_ind"]]
+    moist_layer["top_H"]      = H[moist_layer["top_ind"]]
+    moist_layer["thickness"]  = moist_layer["top_H"] - moist_layer["bottom_H"]
+    return moist_layer
+
+def moist_layers_limitation(moist_layer):
+    thickness_limit = 400
+    bottom_limit = 120
+    valid_moist_layer_mask = moist_layer["thickness"] >= thickness_limit
+    valid_moist_layer_mask = np.logical_and(moist_layer["bottom_H"] >= bottom_limit, valid_moist_layer_mask)
+    for key in moist_layer:
+        moist_layer[key] = moist_layer[key][valid_moist_layer_mask]
+    return moist_layer
+
+def cloud_layer_limitation(moist_layer, RHthreshold):
+    cloud_layer = {}
+    top_limit = 280
+    valid_cloud_layer_mask = moist_layer["RH_max"] > RHthreshold["maxRH"][moist_layer["bottom_ind"]]
+    valid_cloud_layer_mask = np.logical_and(moist_layer["top_H"] >= top_limit, valid_cloud_layer_mask)
+    for key in moist_layer:
+        cloud_layer[key] = moist_layer[key][valid_cloud_layer_mask]
+    return cloud_layer
+
+def combine_cloud_layers(cloud_layer, RHthreshold, RH):
+    inter_layer = {"thickness":[], "RH_min":[], "interRH_max":[]}
+    for i_layer in range(len(cloud_layer["thickness"]) - 1):
+        inter_layer["thickness"].append(cloud_layer["bottom_H"][i_layer+1] - cloud_layer["top_H"][i_layer])
+        bottom_ind = cloud_layer["top_ind"][i_layer] + 1 # bottom_ind of inter layer
+        top_ind = cloud_layer["bottom_ind"][i_layer+1] - 1 # top_ind of inter layer
+        inter_layer["RH_min"].append(np.nanmin(RH[bottom_ind:top_ind+1]))
+        inter_layer["interRH_max"].append(RHthreshold[bottom_ind])
+    for key in inter_layer:
+        inter_layer[key] = np.array(inter_layer[key])
+    combine_mask = inter_layer["thickness"] < 300
+    combine_mask = np.logical_and(inter_layer["RH_min"] > inter_layer["interRH_max"], combine_mask)
+        
 
 class RHThresholdCalculator:
     def __init__(self, RHtable):
