@@ -1,5 +1,5 @@
 import numpy as np
-from atmospkg.calculation import saturation_mixingratio
+from atmospkg.calculation import saturation_mixingratio, potential_temperature
 from datetime import datetime as dd
 
 release_height = 6 # the height of the place to release balloon (meter)
@@ -21,7 +21,8 @@ class STreader:
         for key, value in varnamedict.items():
             vardict[key] = np.loadtxt(filepath, skiprows=14+launch_index, unpack=True, usecols=(value))
         vardict["qv"]  = saturation_mixingratio(vardict["Td"], vardict["P"], Tunit="degC", Punit="hPa")
-        vardict["qvs"] = saturation_mixingratio(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
+        #vardict["qvs"] = saturation_mixingratio(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
+        vardict["PT"] = potential_temperature(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
         vardict["height"] = self._height_modify(vardict["height"], release_height)
         f = open(filepath)
         lines = f.readlines()

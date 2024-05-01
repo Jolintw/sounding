@@ -1,5 +1,5 @@
 import numpy as np
-from atmospkg.calculation import saturation_mixingratio, wswd_to_uv
+from atmospkg.calculation import saturation_mixingratio, wswd_to_uv, potential_temperature
 from datetime import datetime as dd
 import os 
 
@@ -23,6 +23,7 @@ class RS41reader:
             vardict[key] = np.loadtxt(filepath, delimiter=',', skiprows=4, unpack=True, usecols=(value))[mask]
         vardict["qvs"] = saturation_mixingratio(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
         vardict["qv"] = vardict["qvs"] * vardict["RH"]
+        vardict["PT"] = potential_temperature(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
         vardict["U"], vardict["V"] = wswd_to_uv(vardict["WS"], vardict["WD"], wdunit="deg")
         vardict["timestamp"] = vardict["time"] + self.getzerotimefromfile(filepath)
         
