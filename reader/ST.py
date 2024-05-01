@@ -12,7 +12,10 @@ class STreader:
     def readL4(self, filepath):
         varnamedict = {"time":0, "P":4, "T":5, "Td":6, "RH":7, "U":8, "V":9, "WS":10, "WD":11, "Lon":14, "lat":15, "height":13}
         vardict = {}
-
+        P = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(4))
+        if np.nanmin(P) > 950:
+            print("bad launch")
+            return vardict
         time = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(0))
         launch_index = self._findlaunchindex(time)
         for key, value in varnamedict.items():
