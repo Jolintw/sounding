@@ -1,6 +1,6 @@
 from mypkgs.processor.numericalmethod import NonEquidistanceSmoother_1D
 
-def smooth_5hPa(vardict, varnamelist = ["T", "U", "V", "qv", "RH", "qv"]):
+def smooth_5hPa(vardict, varnamelist = ["T", "U", "V", "qvs", "RH", "qv"]):
     NES = NonEquidistanceSmoother_1D(vardict["P"], 5)
     newvardict = {}
     for var in varnamelist:
