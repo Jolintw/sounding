@@ -83,7 +83,7 @@ def _combine_cloud_layers(cloud_layer, RHthreshold, RH):
         return cloud_layer
     inter_layer = _create_inter_layer(cloud_layer, RHthreshold, RH)
     combine_mask = inter_layer["thickness"] < 300
-    combine_mask = np.logical_and(inter_layer["RH_min"] > inter_layer["interRH_max"], combine_mask)
+    combine_mask = np.logical_or(inter_layer["RH_min"] > inter_layer["interRH_max"], combine_mask)
     
     new_cloud_layer = {key:[] for key in cloud_layer}
     temp_layer = {}
