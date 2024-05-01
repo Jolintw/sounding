@@ -47,7 +47,7 @@ def _find_layers_exceed_RHthreshold(RH, RHthreshold, H):
     if np.all(diff == 0):
         return moist_layer
     
-    full_ind = np.arange(len(RH), dtype=int)
+    full_ind = np.arange(len(RH)+1, dtype=int)
     moist_layer["bottom_ind"]   = full_ind[diff==1]
     moist_layer["top_ind"]      = full_ind[diff==-1] - 1
     moist_layer["RH_max"]       = np.array([np.nanmax(RH[bi:ti+1]) for bi, ti in zip(moist_layer["bottom_ind"], moist_layer["top_ind"])])
@@ -71,6 +71,8 @@ def _cloud_layer_limitation(moist_layer, RHthreshold):
     cloud_layer = {}
     if not moist_layer: # empty
         return cloud_layer
+    if len(moist_layer["thickness"])==0:
+        return cloud_layer
     top_limit = 280
     valid_cloud_layer_mask = moist_layer["RH_max"] > RHthreshold["maxRH"][moist_layer["bottom_ind"]]
     valid_cloud_layer_mask = np.logical_and(moist_layer["top_H"] >= top_limit, valid_cloud_layer_mask)
@@ -81,9 +83,11 @@ def _cloud_layer_limitation(moist_layer, RHthreshold):
 def _combine_cloud_layers(cloud_layer, RHthreshold, RH):
     if not cloud_layer:
         return cloud_layer
+    
     inter_layer = _create_inter_layer(cloud_layer, RHthreshold, RH)
     combine_mask = inter_layer["thickness"] < 300
     combine_mask = np.logical_or(inter_layer["RH_min"] > inter_layer["interRH_max"], combine_mask)
+    combine_mask = np.append(combine_mask, [0]) # length of inter_layer is n-1
     
     new_cloud_layer = {key:[] for key in cloud_layer}
     temp_layer = {}
@@ -109,6 +113,8 @@ def _create_inter_layer(cloud_layer, RHthreshold, RH):
     return inter_layer
 
 def _add_layer(lower_layer, upper_layer):
+    if not lower_layer:
+        return upper_layer
     lower_layer["top_ind"] = upper_layer["top_ind"]
     lower_layer["top_H"] = upper_layer["top_H"]
     lower_layer["thickness"] = lower_layer["top_H"] - lower_layer["bottom_H"]
