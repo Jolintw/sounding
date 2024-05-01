@@ -13,8 +13,10 @@ def find_cloud_layer(RH, H):
     :param H: Height from sounding, unit: meter
     """
     moist_layer, RHthreshold = find_moist_layer(RH, H)
-    cloud_layer = cloud_layer_limitation(moist_layer, RHthreshold)
-    cloud_layer = combine_cloud_layers(cloud_layer, RHthreshold, RH)
+    cloud_layer = _cloud_layer_limitation(moist_layer, RHthreshold)
+    cloud_layer = _combine_cloud_layers(cloud_layer, RHthreshold, RH)
+    if not cloud_layer:
+        return {"top_ind":[], "top_H":[], "bottom_ind":[], "bottom_H":[], "thickness":[]}
     return cloud_layer
     
 
@@ -26,12 +28,12 @@ def find_moist_layer(RH, H):
     """
     RHTC = RHThresholdCalculator(Zhang2010RHtable)
     RHthreshold = RHTC.get_RH_threshold(H)
-    moist_layer = find_layers_exceed_RHthreshold(RH, RHthreshold, H)
-    moist_layer = moist_layers_limitation(moist_layer)
+    moist_layer = _find_layers_exceed_RHthreshold(RH, RHthreshold, H)
+    moist_layer = _moist_layers_limitation(moist_layer)
     return moist_layer, RHthreshold
 
 
-def find_layers_exceed_RHthreshold(RH, RHthreshold, H):
+def _find_layers_exceed_RHthreshold(RH, RHthreshold, H):
     RH_exceedminRH = RH > RHthreshold["minRH"]
     RH_exceedminRH[np.isnan(RH)] = np.nan
     RH_exceedminRH_int = RH_exceedminRH.astype(int)
@@ -54,7 +56,7 @@ def find_layers_exceed_RHthreshold(RH, RHthreshold, H):
     moist_layer["thickness"]    = moist_layer["top_H"] - moist_layer["bottom_H"]
     return moist_layer
 
-def moist_layers_limitation(moist_layer):
+def _moist_layers_limitation(moist_layer):
     if not moist_layer: # empty
         return moist_layer
     thickness_limit = 400
@@ -65,7 +67,7 @@ def moist_layers_limitation(moist_layer):
         moist_layer[key] = moist_layer[key][valid_moist_layer_mask]
     return moist_layer
 
-def cloud_layer_limitation(moist_layer, RHthreshold):
+def _cloud_layer_limitation(moist_layer, RHthreshold):
     cloud_layer = {}
     if not moist_layer: # empty
         return cloud_layer
@@ -76,10 +78,10 @@ def cloud_layer_limitation(moist_layer, RHthreshold):
         cloud_layer[key] = moist_layer[key][valid_cloud_layer_mask]
     return cloud_layer
 
-def combine_cloud_layers(cloud_layer, RHthreshold, RH):
+def _combine_cloud_layers(cloud_layer, RHthreshold, RH):
     if not cloud_layer:
-        return {"top_ind":[], "top_H":[], "bottom_ind":[], "bottom_H":[], "thickness":[]}
-    inter_layer = create_inter_layer(cloud_layer, RHthreshold, RH)
+        return cloud_layer
+    inter_layer = _create_inter_layer(cloud_layer, RHthreshold, RH)
     combine_mask = inter_layer["thickness"] < 300
     combine_mask = np.logical_and(inter_layer["RH_min"] > inter_layer["interRH_max"], combine_mask)
     
@@ -87,14 +89,14 @@ def combine_cloud_layers(cloud_layer, RHthreshold, RH):
     temp_layer = {}
     for i_cloud, ifcombine in enumerate(combine_mask):
         now_layer = {key:cloud_layer[key][i_cloud] for key in cloud_layer}
-        temp_layer = add_layer(temp_layer, now_layer)
+        temp_layer = _add_layer(temp_layer, now_layer)
         if not ifcombine:
             for key in cloud_layer: 
                 new_cloud_layer[key].append(temp_layer[key])
             temp_layer = {}
     return new_cloud_layer
 
-def create_inter_layer(cloud_layer, RHthreshold, RH):
+def _create_inter_layer(cloud_layer, RHthreshold, RH):
     inter_layer = {"thickness":[], "RH_min":[], "interRH_max":[]}
     for i_layer in range(len(cloud_layer["thickness"]) - 1):
         inter_layer["thickness"].append(cloud_layer["bottom_H"][i_layer+1] - cloud_layer["top_H"][i_layer])
@@ -106,7 +108,7 @@ def create_inter_layer(cloud_layer, RHthreshold, RH):
         inter_layer[key] = np.array(inter_layer[key])
     return inter_layer
 
-def add_layer(lower_layer, upper_layer):
+def _add_layer(lower_layer, upper_layer):
     lower_layer["top_ind"] = upper_layer["top_ind"]
     lower_layer["top_H"] = upper_layer["top_H"]
     lower_layer["thickness"] = lower_layer["top_H"] - lower_layer["bottom_H"]
