@@ -5,6 +5,16 @@ from datetime import datetime as dd
 release_height = 6 # the height of the place to release balloon (meter)
 
 class STreader:
+    """
+    timestamp: second
+    P: hPa
+    T: degC
+    PT: K
+    qv: kg/kg
+    RH: %
+    height: m
+    U, V: m/s
+    """
     def __init__(self, STpath = None):
         if not STpath is None:
             self.getdirlist(STpath)
@@ -20,16 +30,10 @@ class STreader:
         launch_index = self._findlaunchindex(time)
         for key, value in varnamedict.items():
             vardict[key] = np.loadtxt(filepath, skiprows=14+launch_index, unpack=True, usecols=(value))
-        vardict["qv"]  = saturation_mixingratio(vardict["Td"], vardict["P"], Tunit="degC", Punit="hPa")
-        #vardict["qvs"] = saturation_mixingratio(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
-        vardict["PT"] = potential_temperature(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
-        vardict["height"] = self._height_modify(vardict["height"], release_height)
-        f = open(filepath)
-        lines = f.readlines()
-        f.close()
-        timestr = lines[5].split(":", 1)[1].strip()
-        fmt = "%Y, %m, %d, %H:%M:%S%z"
-        zerotime = dd.strptime(timestr+"+0000", fmt).timestamp()
+        vardict["qv"]        = saturation_mixingratio(vardict["Td"], vardict["P"], Tunit="degC", Punit="hPa")
+        vardict["PT"]        = potential_temperature(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
+        vardict["height"]    = self._height_modify(vardict["height"], release_height)
+        zerotime = self.getzerotime(filepath)
         vardict["timestamp"] = zerotime + vardict["time"]
         return vardict
     
@@ -54,6 +58,15 @@ class STreader:
         STlist = list(STpath.glob("*"))
         self.STlist = STlist
         return STlist
+    
+    def getzerotime(self, filepath):
+        f = open(filepath)
+        lines = f.readlines()
+        f.close()
+        timestr = lines[5].split(":", 1)[1].strip()
+        fmt = "%Y, %m, %d, %H:%M:%S%z"
+        zerotime = dd.strptime(timestr+"+0000", fmt).timestamp()
+        return zerotime
     
     def _findlaunchindex(self, time):
         dts = time[1:] - time[:-1]
