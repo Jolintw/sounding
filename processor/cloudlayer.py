@@ -32,6 +32,13 @@ def find_moist_layer(RH, H):
     moist_layer = _moist_layers_limitation(moist_layer)
     return moist_layer, RHthreshold
 
+def make_cloud_mask(cloud_layer, H):
+    cloud_mask = np.zeros_like(H, dtype=bool)
+    for cloud in range(len(cloud_layer["thickness"])):
+        bi = cloud_layer["bottom_ind"][cloud]
+        ti = cloud_layer["top_ind"][cloud]
+        cloud_mask[bi:ti+1] = True
+    return cloud_mask
 
 def _find_layers_exceed_RHthreshold(RH, RHthreshold, H):
     RH_exceedminRH = RH > RHthreshold["minRH"]
