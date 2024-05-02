@@ -5,6 +5,16 @@ from mypkgs.processor.timetools import timestamp_to_datetime
 import os 
 
 class RS41reader:
+    """
+    timestamp: second
+    P: hPa
+    T: degC
+    PT: K
+    qv: kg/kg
+    RH: %
+    height: m
+    U, V: m/s
+    """
     def __init__(self, RS41path = None):
         if not RS41path is None:
             self.getfilelist(RS41path)
