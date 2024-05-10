@@ -36,8 +36,15 @@ class Layer:
         maxvalue = []
         for bi, ti in zip(self.bottom_ind, self.top_ind):
             maxvalue.append(np.nanmax(var[bi:ti+1]))
-        setattr(self, prefix+"_max", var[self.top_ind])
+        setattr(self, prefix+"_max", np.array(maxvalue))
         return getattr(self, prefix+"_max")
+    
+    def get_max_ind_in_layer(self, var, prefix):
+        maxind = []
+        for bi, ti in zip(self.bottom_ind, self.top_ind):
+            maxind.append(np.nanargmax(var[bi:ti+1]) + bi)
+        setattr(self, prefix+"_maxind", np.array(maxind))
+        return getattr(self, prefix+"_maxind")
 
     def get_mask_of_layer(self, var):
         """
