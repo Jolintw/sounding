@@ -10,6 +10,8 @@ RS41DATA = DATA / "RS41"
 EDT = RS41DATA / "EDTdata"
 
 PIC  = ROOT / "pic"
+SSPIC = PIC / "snapshot"
+SSPIC_RS41 = SSPIC / "RS41"
 
 
 
