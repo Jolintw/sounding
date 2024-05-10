@@ -75,3 +75,10 @@ class RS41reader:
         fmt = "%d/%m/%Y %H:%M:%S%z"
         zerotime = dd.strptime(timestr+"+0000", fmt).timestamp()
         return zerotime
+    
+    def get_nearest_hour(self, vardict, hour_intv=3):
+        firsttime = self.getfirsttime(vardict).timestamp()
+        second_intv = hour_intv*3600
+        newtime = np.round(firsttime / second_intv) * second_intv
+        nearest_hour = timestamp_to_datetime(newtime)
+        return nearest_hour 
