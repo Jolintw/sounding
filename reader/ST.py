@@ -1,5 +1,6 @@
 import numpy as np
 from atmospkg.calculation import saturation_mixingratio, potential_temperature
+from mypkgs.processor.timetools import timestamp_to_datetime
 from datetime import datetime as dd
 
 release_height = 6 # the height of the place to release balloon (meter)
@@ -38,7 +39,7 @@ class STreader:
         return vardict
     
     def getfirsttime(self, vardict):
-        return dd.fromtimestamp(vardict["timestamp"][0])
+        return timestamp_to_datetime(vardict["timestamp"][0])
     
     def getL4p_PBLlist(self, STpath = None):
         filename = "L4p_PBL.eol"
@@ -78,3 +79,10 @@ class STreader:
     def _height_modify(self, height, release_height):
         bias = height[0] - release_height
         return height - bias
+
+    def get_nearest_hour(self, vardict, hour_intv=3):
+        firsttime = self.getfirsttime(vardict).timestamp()
+        second_intv = hour_intv*3600
+        newtime = np.round(firsttime / second_intv) * second_intv
+        nearest_hour = timestamp_to_datetime(newtime)
+        return nearest_hour 
