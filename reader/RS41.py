@@ -26,7 +26,7 @@ class RS41reader:
         try:
             asc = np.loadtxt(filepath, delimiter=',', skiprows=4)[:,-1]
         except:
-            filepath = self._create_tempfile_without_nonnumericstr()
+            filepath = self._create_tempfile_without_nonnumericstr(filepath, tempfilename=tempname)
             asc = np.loadtxt(filepath, delimiter=',', skiprows=4)[:,-1]
         
         mask = (asc >= 0)
