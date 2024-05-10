@@ -1,5 +1,6 @@
 import numpy as np
-from processor.interpolate import interpolate_by
+from processor.interpolate import interpolate_by,  create_Parray_asnewX
+
 
 def calculate_x(ax, xposition):
     xlim = ax.get_xlim()
@@ -7,6 +8,9 @@ def calculate_x(ax, xposition):
     return x
 
 def plot_MLH_line(plotter, vardict, MLH_ind, subplot_n=0, xposition=0, color="indigo"):
+    """
+    xposition: position of text in x axis range 0~1
+    """
     ax = plotter.axs[subplot_n][0]
     textx = calculate_x(ax, xposition)
     MLH_P = vardict["P"][MLH_ind]
@@ -14,6 +18,9 @@ def plot_MLH_line(plotter, vardict, MLH_ind, subplot_n=0, xposition=0, color="in
     ax.text(textx, MLH_P+5, "MLH", verticalalignment="top", color=line_MLH[0].get_color(), fontsize=plotter.fontsize)
 
 def plot_inversion_line(plotter, vardict, inversion_layer, subplot_n=0, xposition=0, color="dimgrey"):
+    """
+    xposition: position of text in x axis range 0~1
+    """
     ax = plotter.axs[subplot_n][0]
     textx = calculate_x(ax, xposition)
     strongest_inversion = np.argmax(inversion_layer.top_PT - inversion_layer.bottom_PT)
@@ -23,7 +30,17 @@ def plot_inversion_line(plotter, vardict, inversion_layer, subplot_n=0, xpositio
     line_inv = plotter.hline(strongest_inversion_P, color=color, linestyle="dashed", axn=(subplot_n,0))
     ax.text(textx, strongest_inversion_P-5, "inversion", verticalalignment="bottom", color=line_inv[0].get_color(), fontsize=plotter.fontsize)
 
-def set_yticks(vardict, plotter, subplot_n=0, ifhticks = True):
+def plot_cloud_layer_mark(plotter, paintbox_1D, vardict, cloud_layer, subplot_n=0, xposition=0.84):
+    top_P    = vardict["P"][cloud_layer.top_ind]
+    bottom_P = vardict["P"][cloud_layer.bottom_ind]
+    P_5 = create_Parray_asnewX(intv=5, maxP=np.nanmax(vardict["P"]), minP=450)
+    P_5_cloud = np.array([])
+    for top_P, bottom_P in zip(top_P, bottom_P):
+        P_5_cloud = np.append(P_5_cloud, P_5[(P_5>top_P) * (P_5<bottom_P)])
+    p = paintbox_1D.plotmark_y(Y=P_5_cloud, xposition=xposition, ax=plotter.axs[subplot_n][0], color="tab:blue")
+    return p
+
+def set_yticks(plotter, vardict, subplot_n=0, ifhticks = True):
     maxP = np.nanmax(vardict["P"])
     if maxP > 1000:
         levels = [1000, 925, 850, 800, 700]
