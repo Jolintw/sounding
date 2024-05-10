@@ -27,6 +27,18 @@ class Layer:
         self.layer_number = len(self.bottom_ind)
         return self.layer_number
     
+    def get_bottom_top_value(self, var, postfix):
+        setattr(self, "bottom_"+postfix, var[self.bottom_ind])
+        setattr(self, "top_"+postfix, var[self.top_ind])
+        return getattr(self, "bottom_"+postfix), getattr(self, "top_"+postfix)
+    
+    def get_max_value_in_layer(self, var, prefix):
+        maxvalue = []
+        for bi, ti in zip(self.bottom_ind, self.top_ind):
+            maxvalue.append(np.nanmax(var[bi:ti+1]))
+        setattr(self, prefix+"_max", var[self.top_ind])
+        return getattr(self, prefix+"_max")
+
     def get_mask_of_layer(self, var):
         """
         return a boolean array has length of var
