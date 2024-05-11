@@ -12,6 +12,6 @@ EDT = RS41DATA / "EDTdata"
 PIC  = ROOT / "pic"
 SSPIC = PIC / "snapshot"
 SSPIC_RS41 = SSPIC / "RS41"
-
+SSPIC_ST = SSPIC / "ST"
 
 
