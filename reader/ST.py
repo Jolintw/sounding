@@ -1,5 +1,5 @@
 import numpy as np
-from atmospkg.calculation import saturation_mixingratio, potential_temperature
+from atmospkg.calculation import saturation_mixingratio, potential_temperature, wswd_to_uv, vapor_pressure_from_mixingratio, calculate_geopotential_height
 from mypkgs.processor.timetools import timestamp_to_datetime
 from datetime import datetime as dd
 
@@ -24,8 +24,7 @@ class STreader:
         varnamedict = {"time":0, "P":4, "T":5, "Td":6, "RH":7, "U":8, "V":9, "WS":10, "WD":11, "Lon":14, "lat":15, "height":13}
         vardict = {}
         P = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(4))
-        if np.nanmin(P) > 950:
-            print("bad launch")
+        if not self._check_data(P):
             return vardict
         time = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(0))
         launch_index = self._findlaunchindex_p(time)
@@ -42,11 +41,7 @@ class STreader:
         varnamedict = {"time":0, "P":4, "T":5, "Td":6, "RH":7, "U":8, "V":9, "WS":10, "WD":11, "Lon":14, "lat":15, "height":13}
         vardict = {}
         P = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(4))
-        if np.nanmax(P) < 900:
-            print("weird data")
-            return vardict
-        if np.nanmin(P) > 950:
-            print("bad launch")
+        if not self._check_data(P):
             return vardict
         # P = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(0))
         launch_index = self._findlaunchindex_second(P)
@@ -62,6 +57,29 @@ class STreader:
         vardict["height"]    = self._height_modify(vardict["height"], release_height)
         zerotime = self.getzerotime(filepath)
         vardict["timestamp"] = zerotime + vardict["time"]
+        return vardict
+    
+    def readL1(self, filepath):
+        varnamedict = {"time":0, "P":2, "T":3, "RH":4, "WS":5, "WD":6, "Lon":7, "lat":8}
+        vardict = {}
+        P = np.loadtxt(filepath, delimiter=",", skiprows=1, unpack=True, usecols=(varnamedict["P"]))
+        if not self._check_data(P):
+            return vardict
+        launch_index = self._findlaunchindex_second(P)
+        for key, value in varnamedict.items():
+            vardict[key] = np.loadtxt(filepath, delimiter=",", skiprows=1+launch_index, unpack=True, usecols=(value))
+        ind_upward = self._keepupward_ind(vardict["P"])
+        for key, value in vardict.items():
+            vardict[key] = value[ind_upward]
+        if np.any((vardict["P"][1:] - vardict["P"][:-1]) > 0):
+            print("error")
+        vardict["qvs"] = saturation_mixingratio(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
+        vardict["qv"]  = vardict["qvs"] * vardict["RH"] / 100
+        vardict["PT"]  = potential_temperature(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
+        vardict["U"], vardict["V"] = wswd_to_uv(vardict["WS"], vardict["WD"], wdunit="deg")
+        vardict["timestamp"] = vardict["time"] + self.getzerotime_L1(filepath)
+        vardict["e"] = vapor_pressure_from_mixingratio(qv=vardict["qv"], P=vardict["P"], qvunit="kg/kg", Punit="hPa")
+        vardict["height"] = calculate_geopotential_height(P=vardict["P"], T=vardict["T"], e=vardict["e"], Punit="hPa", Tunit="degC", eunit="Pa")
         return vardict
     
     def getfirsttime(self, vardict):
@@ -96,6 +114,15 @@ class STreader:
         zerotime = dd.strptime(timestr+"+0800", fmt).timestamp()
         return zerotime
     
+    def getzerotime_L1(self, filepath):
+        f = open(filepath)
+        lines = f.readlines()
+        f.close()
+        timestr = lines[1].split(",")[1].strip()
+        fmt = "%Y-%m-%d %H:%M:%S%z"
+        zerotime = dd.strptime(timestr, fmt).timestamp()
+        return zerotime
+
     def _findlaunchindex_p(self, time):
         dts = time[1:] - time[:-1]
         for i_dt, dt in enumerate(dts):
@@ -129,3 +156,13 @@ class STreader:
         newtime = np.round(firsttime / second_intv) * second_intv
         nearest_hour = timestamp_to_datetime(newtime)
         return nearest_hour 
+    
+    def _check_data(self, P):
+        if np.nanmax(P) < 900:
+            print("weird data")
+            return False
+        elif np.nanmin(P) > 950:
+            print("bad launch")
+            return False
+        else:
+            return True
