@@ -23,13 +23,14 @@ def plot_inversion_line(plotter, vardict, inversion_layer, subplot_n=0, xpositio
     """
     ax = plotter.axs[subplot_n][0]
     textx = calculate_x(ax, xposition)
-    strongest_inversion = np.argmax(inversion_layer.top_PT - inversion_layer.bottom_PT)
+    inversion_ind = inversion_layer.PBL_ind
+    # strongest_inversion = np.argmax(inversion_layer.top_PT - inversion_layer.bottom_PT)
     # bottom_P = vardict["P"][inversion_layer.bottom_ind[strongest_inversion]]
     # top_P = vardict["P"][inversion_layer.top_ind[strongest_inversion]]
     # strongest_inversion_P = (bottom_P + top_P) / 2
-    strongest_inversion_P = vardict["P"][inversion_layer.dPTdH_maxind[strongest_inversion]]
-    line_inv = plotter.hline(strongest_inversion_P, color=color, linestyle="dashed", axn=(subplot_n,0))
-    ax.text(textx, strongest_inversion_P+5, "inversion", verticalalignment="top", color=line_inv[0].get_color(), fontsize=plotter.fontsize)
+    inversion_P = vardict["P"][inversion_ind]
+    line_inv = plotter.hline(inversion_P, color=color, linestyle="dashed", axn=(subplot_n,0))
+    ax.text(textx, inversion_P+5, "inversion", verticalalignment="top", color=line_inv[0].get_color(), fontsize=plotter.fontsize)
 
 def plot_cloud_layer_mark(plotter, paintbox_1D, vardict, cloud_layer, subplot_n=0, xposition=0.84):
     top_P    = vardict["P"][cloud_layer.top_ind]
