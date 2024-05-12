@@ -14,6 +14,7 @@ from plotter.snapshot import plot_inversion_line, plot_MLH_line, set_yticks, plo
 # datatype = "RS41" 
 # datatype = "ST_p"
 datatype = "ST_s"
+# datatype = "ST_L1"
 
 if datatype == "RS41":
     RD = RS41reader(EDT)
@@ -32,6 +33,12 @@ else:
         RD = STreader(ST2)
         filelist = filelist + RD.getfilelist("L4_PBL.eol")
         picdir = SSPIC / "ST_second"
+    elif datatype == "ST_L1":
+        RD = STreader(ST1)
+        filelist = RD.getfilelist("L1.csv")
+        RD = STreader(ST2)
+        filelist = filelist + RD.getfilelist("L1.csv")
+        picdir = SSPIC / "ST_L1"
 
 for file in filelist:
     print(file)
@@ -43,6 +50,8 @@ for file in filelist:
         vardict = RD.readL4_p(file)
     elif datatype == "ST_s":
         vardict = RD.readL4_second(file)
+    elif datatype == "ST_L1":
+        vardict = RD.readL1(file)
     if not vardict:
         continue
     firsttime = RD.getfirsttime(vardict)
@@ -59,7 +68,7 @@ for file in filelist:
     inversion_layer = find_inversion_layer(vardict["PT"], vardict["height"], cloud_layer.get_mask_of_layer(vardict["PT"]))
     MLH_ind         = find_MLH(P=vardict["P"], PT=vardict["PT"], qv=vardict["qv"]*1000)
     newX        = create_Parray_asnewX(intv=10, maxP=np.nanmax(vardict["P"]), minP=700)
-    print(vardict["P"])
+    # print(vardict["P"])
     # print(newX)
     vardict_P10 = interpolate_by(vardict=vardict, Xname="P", newX=newX)
 
