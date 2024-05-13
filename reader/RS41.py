@@ -1,10 +1,12 @@
-import numpy as np
-from atmospkg.calculation import saturation_mixingratio, wswd_to_uv, potential_temperature
-from datetime import datetime as dd
-from mypkgs.processor.timetools import timestamp_to_datetime
 import os 
+from datetime import datetime as dd
 
-class RS41reader:
+import numpy as np
+
+from atmospkg.calculation import saturation_mixingratio, wswd_to_uv, potential_temperature
+from reader.reader import Soundingreader
+
+class RS41reader(Soundingreader):
     """
     timestamp: second
     P: hPa
@@ -49,9 +51,6 @@ class RS41reader:
         self.filelist = filelist
         return filelist
     
-    def getfirsttime(self, vardict):
-        return timestamp_to_datetime(vardict["timestamp"][0])
-    
     def _create_tempfile_without_nonnumericstr(self, filepath, tempfilename):
         f  = open(filepath)
         fo = open(tempfilename,"w")
@@ -76,9 +75,3 @@ class RS41reader:
         zerotime = dd.strptime(timestr+"+0000", fmt).timestamp()
         return zerotime
     
-    def get_nearest_hour(self, vardict, hour_intv=3):
-        firsttime = self.getfirsttime(vardict).timestamp()
-        second_intv = hour_intv*3600
-        newtime = np.round(firsttime / second_intv) * second_intv
-        nearest_hour = timestamp_to_datetime(newtime)
-        return nearest_hour 

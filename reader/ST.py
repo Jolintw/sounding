@@ -1,11 +1,13 @@
-import numpy as np
-from atmospkg.calculation import saturation_mixingratio, potential_temperature, wswd_to_uv, vapor_pressure_from_mixingratio, calculate_geopotential_height
-from mypkgs.processor.timetools import timestamp_to_datetime
 from datetime import datetime as dd
+
+import numpy as np
+
+from atmospkg.calculation import saturation_mixingratio, potential_temperature, wswd_to_uv, vapor_pressure_from_mixingratio, calculate_geopotential_height
+from reader.reader import Soundingreader
 
 release_height = 6 # the height of the place to release balloon (meter)
 
-class STreader:
+class STreader(Soundingreader):
     """
     timestamp: second
     P: hPa
@@ -82,9 +84,6 @@ class STreader:
         vardict["height"] = calculate_geopotential_height(P=vardict["P"], T=vardict["T"], e=vardict["e"], Punit="hPa", Tunit="degC", eunit="Pa")
         return vardict
     
-    def getfirsttime(self, vardict):
-        return timestamp_to_datetime(vardict["timestamp"][0])
-    
     def getL4p_PBLlist(self, STpath = None):
         filename = "L4p_PBL.eol"
         return self.getfilelist(filename, STpath)
@@ -150,13 +149,6 @@ class STreader:
             dP  = P[1:] - P[:-1]
         return ind
 
-    def get_nearest_hour(self, vardict, hour_intv=3):
-        firsttime = self.getfirsttime(vardict).timestamp()
-        second_intv = hour_intv*3600
-        newtime = np.round(firsttime / second_intv) * second_intv
-        nearest_hour = timestamp_to_datetime(newtime)
-        return nearest_hour 
-    
     def _check_data(self, P):
         if np.nanmax(P) < 900:
             print("weird data")
