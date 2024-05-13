@@ -21,6 +21,12 @@ class RS41reader(Soundingreader):
         if not RS41path is None:
             self.getfilelist(RS41path)
 
+    def read(self, filepath, datatype = "RS41_EDT"):
+        if datatype == "RS41_EDT":
+            return self.readEDT(filepath=filepath)
+        else:
+            raise Exception("datatype \"{:s}\" is not exist.".format(datatype))
+
     def readEDT(self, filepath):
         varnamedict = {"time":0, "height":1, "P":2, "T":3, "RH":4, "WS":5, "WD":6}
         vardict = {}

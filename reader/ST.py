@@ -22,7 +22,17 @@ class STreader(Soundingreader):
         if not STpath is None:
             self.getdirlist(STpath)
 
-    def readL4_p(self, filepath):
+    def read(self, filepath, datatype="ST_L4p"):
+        if datatype == "ST_L4p":
+            return self.readL4p(filepath=filepath)
+        elif datatype == "ST_L4":
+            return self.readL4(filepath=filepath)
+        elif datatype == "ST_L1":
+            return self.readL1(filepath=filepath)
+        else:
+            raise Exception("datatype \"{:s}\" is not exist.".format(datatype))
+
+    def readL4p(self, filepath):
         varnamedict = {"time":0, "P":4, "T":5, "Td":6, "RH":7, "U":8, "V":9, "WS":10, "WD":11, "Lon":14, "lat":15, "height":13}
         vardict = {}
         P = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(4))
@@ -39,7 +49,7 @@ class STreader(Soundingreader):
         vardict["timestamp"] = zerotime + vardict["time"]
         return vardict
     
-    def readL4_second(self, filepath):
+    def readL4(self, filepath):
         varnamedict = {"time":0, "P":4, "T":5, "Td":6, "RH":7, "U":8, "V":9, "WS":10, "WD":11, "Lon":14, "lat":15, "height":13}
         vardict = {}
         P = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(4))

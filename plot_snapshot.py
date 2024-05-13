@@ -1,9 +1,8 @@
 import numpy as np
 from mypkgs.plotter.plotter import TwinPlotter
 from mypkgs.plotter.paintbox import Paintbox_1D
-from variable.pathconfig import ST1, ST2, EDT, SSPIC_RS41, SSPIC_ST, SSPIC
-from reader.ST import STreader
-from reader.RS41 import RS41reader
+from variable.pathconfig import SSPIC
+from reader.read import get_reader_and_filelist
 from processor.cloudlayer import find_cloud_layer
 from processor.MLH import find_MLH
 from processor.smooth5hPa import smooth_5hPa
@@ -11,47 +10,19 @@ from processor.inversion import find_inversion_layer
 from processor.interpolate import interpolate_by, create_Parray_asnewX
 from plotter.snapshot import plot_inversion_line, plot_MLH_line, set_yticks, plot_cloud_layer_mark
 
-# datatype = "RS41" 
-# datatype = "ST_p"
-datatype = "ST_s"
-# datatype = "ST_L1"
+# datatype = "RS41_EDT" 
+# datatype = "ST_L4p"
+# datatype = "ST_L4"
+datatype = "ST_L1"
 
-if datatype == "RS41":
-    RD = RS41reader(EDT)
-    picdir = SSPIC_RS41
-    filelist = RD.filelist
-else:
-    if datatype == "ST_p":
-        RD = STreader(ST1)
-        filelist = RD.getL4p_PBLlist()
-        RD = STreader(ST2)
-        filelist = filelist + RD.getL4p_PBLlist()
-        picdir = SSPIC_ST
-    elif datatype == "ST_s":
-        RD = STreader(ST1)
-        filelist = RD.getfilelist("L4_PBL.eol")
-        RD = STreader(ST2)
-        filelist = filelist + RD.getfilelist("L4_PBL.eol")
-        picdir = SSPIC / "ST_second"
-    elif datatype == "ST_L1":
-        RD = STreader(ST1)
-        filelist = RD.getfilelist("L1.csv")
-        RD = STreader(ST2)
-        filelist = filelist + RD.getfilelist("L1.csv")
-        picdir = SSPIC / "ST_L1"
+picdir = SSPIC / datatype
+RD, filelist = get_reader_and_filelist(datatype=datatype)
 
 for file in filelist:
     print(file)
     if not file.is_file():
         continue
-    if datatype == "RS41":
-        vardict = RD.readEDT(file)
-    elif datatype == "ST_p":
-        vardict = RD.readL4_p(file)
-    elif datatype == "ST_s":
-        vardict = RD.readL4_second(file)
-    elif datatype == "ST_L1":
-        vardict = RD.readL1(file)
+    vardict = RD.read(file, datatype)
     if not vardict:
         continue
     firsttime = RD.getfirsttime(vardict)
