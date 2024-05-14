@@ -75,17 +75,18 @@ def _combine_cloud_layers(cloud_layer, RHthreshold, RH):
     keys = cloud_layer.get_keys_of_variables()
     new_cloud_layer = Layer()
     for key in keys:
-        setattr(new_cloud_layer, key, np.array([]))
+        setattr(new_cloud_layer, key, [])
     temp_layer = {}
     for i_cloud, ifcombine in enumerate(combine_mask):
         now_layer = {key:getattr(cloud_layer, key)[i_cloud] for key in keys}
         temp_layer = _add_layer(temp_layer, now_layer)
         if not ifcombine:
             for key in keys: 
-                value = np.append(getattr(new_cloud_layer, key), temp_layer[key])
+                value = getattr(new_cloud_layer, key) + [temp_layer[key]]
                 setattr(new_cloud_layer, key, value)
             temp_layer = {}
     new_cloud_layer.count_layer()
+    print(new_cloud_layer.bottom_ind)
     return new_cloud_layer
 
 def _create_inter_layer(cloud_layer, RHthreshold, RH):
@@ -105,9 +106,9 @@ def _create_inter_layer(cloud_layer, RHthreshold, RH):
 def _add_layer(lower_layer, upper_layer):
     if not lower_layer:
         return upper_layer
-    lower_layer.top_ind = upper_layer.top_ind
-    lower_layer.top_H = upper_layer.top_H
-    lower_layer.thickness = lower_layer.top_H - lower_layer.bottom_H
+    lower_layer["top_ind"] = upper_layer["top_ind"]
+    lower_layer["top_H"] = upper_layer["top_H"]
+    lower_layer["thickness"] = lower_layer["top_H"] - lower_layer["bottom_H"]
     return lower_layer
 
 
