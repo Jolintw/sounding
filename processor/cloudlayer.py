@@ -86,7 +86,6 @@ def _combine_cloud_layers(cloud_layer, RHthreshold, RH):
                 setattr(new_cloud_layer, key, value)
             temp_layer = {}
     new_cloud_layer.count_layer()
-    print(new_cloud_layer.bottom_ind)
     return new_cloud_layer
 
 def _create_inter_layer(cloud_layer, RHthreshold, RH):
