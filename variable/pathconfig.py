@@ -11,6 +11,7 @@ EDT = RS41DATA / "EDTdata"
 
 PIC  = ROOT / "pic"
 SSPIC = PIC / "snapshot"
+BOXPIC = PIC / "parameter_boxplot"
 
 OUT = ROOT / "out"
 PBL_PAR = OUT / "PBL_parameters"
