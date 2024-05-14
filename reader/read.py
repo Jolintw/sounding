@@ -32,7 +32,9 @@ def readall(datatype):
         soundingtimelist.append(RD.get_nearest_hour(varslist[-1]))
         # print(soundingtimelist[-1])
     datadict = {}
-    datadict["vars"] = [smooth_5hPa(vardict=vars) for _,vars in sorted(zip(soundingtimelist, varslist))]
+    inds = [ind for _,ind in sorted(zip(soundingtimelist, list(range(len(soundingtimelist)))))]
+    print("smooth the sounding")
+    datadict["vars"] = [smooth_5hPa(varslist[ind]) for ind in inds]
     datadict["soundingtime"] = sorted(soundingtimelist)
     print("find cloud ...")
     datadict["cloud_layer"] = [find_cloud_layer(RH=vars["RH"]/100, H=vars["height"]) for vars in datadict["vars"]]
