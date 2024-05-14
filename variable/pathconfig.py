@@ -12,3 +12,5 @@ EDT = RS41DATA / "EDTdata"
 PIC  = ROOT / "pic"
 SSPIC = PIC / "snapshot"
 
+OUT = ROOT / "out"
+PBL_PAR = OUT / "PBL_parameters"
