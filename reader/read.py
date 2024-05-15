@@ -68,3 +68,43 @@ def get_reader_and_filelist(datatype):
         else:
             raise Exception("datatype \"{:s}\" is not exist.".format(datatype))
     return RD, filelist
+
+def get_cotime_datas(datas):
+    cotime = []
+    soundingtimestamp_0 = _get_shortest_time(datas)
+    for t in soundingtimestamp_0:
+        flag = True
+        for data in datas.values():
+            flag = flag and t_in_tlist(t, data["soundingtimestamp"])
+            if not flag:
+                break
+        if flag:
+            cotime.append(t)
+    new_datas = {}
+    for key, data in datas.items():
+        new_datas[key] = {varkey:[] for varkey in data}
+    for key, data in datas.items():
+        new_data = new_datas[key]
+        for t in cotime:
+            tind = find_tind_in_tlist(t, data["soundingtimestamp"])
+            for varkey in data:
+                new_data[varkey].append(data[varkey][tind])
+            if isinstance(new_data[varkey][0], (int, float)):
+                new_data[varkey] = np.array(new_data[varkey])
+    return new_datas
+
+def _get_shortest_time(datas):
+    templen = np.inf
+    for data in datas.values():
+        if templen > len(data["soundingtimestamp"]):
+            soundingtimestamp_0 = data["soundingtimestamp"]
+            templen = len(soundingtimestamp_0)
+    return soundingtimestamp_0
+
+def t_in_tlist(t, tlist):
+    tlist = np.array(tlist)
+    return np.any(np.abs(t - tlist) < 600)
+
+def find_tind_in_tlist(t, tlist):
+    tlist = np.array(tlist)
+    return np.argmin(np.abs(t - tlist))
