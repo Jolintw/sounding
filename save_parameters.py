@@ -4,6 +4,9 @@ from variable.pathconfig import PBL_PAR
 
 # datatype = "RS41_EDT"
 datatype = "ST_L4p"
+datatype = "ST_L4"
+datatype = "ST_L1"
+
 data = readall(datatype=datatype)
 data["soundingtimestamp"]   = [time.timestamp() for time in data["soundingtime"]]
 data["inversion_ind"]       = [inversion.PBL_ind for inversion in data["inversion_layer"]]
