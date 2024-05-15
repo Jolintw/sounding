@@ -12,8 +12,8 @@ from plotter.snapshot import plot_inversion_line, plot_MLH_line, set_yticks, plo
 
 # datatype = "RS41_EDT" 
 # datatype = "ST_L4p"
-# datatype = "ST_L4"
-datatype = "ST_L1"
+datatype = "ST_L4"
+# datatype = "ST_L1"
 
 picdir = SSPIC / datatype
 RD, filelist = get_reader_and_filelist(datatype=datatype)
@@ -29,10 +29,10 @@ for file in filelist:
     print(firsttime)
     vardict = smooth_5hPa(vardict)
     P = vardict["P"]
-    for key in vardict:
-        vardict[key] = vardict[key][P>650]
-    if np.nanmin(vardict["P"]) > 700 or np.nanmax(vardict["P"]) < 950:
-        print("under 700 hPa")
+    # for key in vardict:
+    #     vardict[key] = vardict[key][P>450]
+    if np.nanmin(vardict["P"]) > 500 or np.nanmax(vardict["P"]) < 950:
+        print("under 500 hPa")
         continue
 
     cloud_layer     = find_cloud_layer(vardict["RH"]/100, vardict["height"])
