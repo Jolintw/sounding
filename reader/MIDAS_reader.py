@@ -2,22 +2,6 @@ import numpy as np
 from datetime import datetime as dd
 from variable.MIDAS_prefix import use_time, met_ntu, met_bridge
 
-def get_interest_lines(filepath, interest_list):
-    f = open(filepath)
-    lines = f.readlines()
-    f.close()
-    interest_lines = {key:[] for key in interest_list}
-    line_indexs = {key:[] for key in interest_list}
-    for i_lines, line in enumerate(lines):
-        line_split = line.split(",")
-        if len(line_split) < 3:
-            continue
-        key = line_split[2][1:]
-        if key in interest_list:
-            interest_lines[key].append(line.split(",", maxsplit=3)[-1])
-            line_indexs[key].append(i_lines)
-    return interest_lines, line_indexs
-
 def readMIDAS(filepath, need_var= None):
     """
     need_var: met_bridge, met_ntu, met_cwb(not working)
@@ -44,6 +28,23 @@ def get_interest_list(need_var):
     if "met_ntu" in need_var:
         interest_list += [met_ntu]
     return interest_list
+
+
+def get_interest_lines(filepath, interest_list):
+    f = open(filepath)
+    lines = f.readlines()
+    f.close()
+    interest_lines = {key:[] for key in interest_list}
+    line_indexs = {key:[] for key in interest_list}
+    for i_lines, line in enumerate(lines):
+        line_split = line.split(",")
+        if len(line_split) < 3:
+            continue
+        key = line_split[2][1:]
+        if key in interest_list:
+            interest_lines[key].append(line.split(",", maxsplit=3)[-1])
+            line_indexs[key].append(i_lines)
+    return interest_lines, line_indexs
 
 def time_list_index(line_indexs, time_name=use_time):
     """
