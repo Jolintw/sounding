@@ -22,7 +22,7 @@ met_ntu = "met_ntu"
 
 for file in filelist:
     data = readMIDAS(file)
-
+    print(file)
     if met_bridge in data:
         metdata = data[met_bridge]
         header_bridge = header_base + "$WIXDR sensor on bridge\n"
