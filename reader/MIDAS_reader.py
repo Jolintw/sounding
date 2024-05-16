@@ -1,9 +1,7 @@
 import numpy as np
 from datetime import datetime as dd
+from variable.MIDAS_prefix import use_time, met_ntu, met_bridge
 
-use_time = "INZDA" #"GPZDA"
-met_ntu = "PORWIA"
-met_bridge = "WIXDR"
 def get_interest_lines(filepath, interest_list):
     f = open(filepath)
     lines = f.readlines()
@@ -82,18 +80,21 @@ def ZDA_to_timestamp(time_lines):
     return timestamps
 
 def read_met_bridge(varlines, index_of_timestamps, timestamps):
-    data = {"P":[], "P_time":[], "H":[], "H_time":[], "G":[], "G_time":[]}
-    # print(len(varlines))
+    data = {"P":[], "P_time":[], "H":[], "H_time":[], "G":[], "G_time":[], "C":[], "C_time":[]}
     for i_line, line in enumerate(varlines):
-        line_split = line.split(",")
-        timestamp_ind = index_of_timestamps[i_line]
-        varname = line_split[0]
-        if timestamp_ind < 0:
-            data[varname+"_time"].append(timestamps[0])
-        else:
-            data[varname+"_time"].append(timestamps[timestamp_ind])
-        data[varname].append(float(line_split[1]))
+        _split_line_append_to_data_met_bridge(line, data, timestamps, timestamp_ind=index_of_timestamps[i_line])
     return data
+
+def _split_line_append_to_data_met_bridge(line, data, timestamps, timestamp_ind):
+    line_split = line.split(",", maxsplit=4)
+    varname = line_split[0]
+    if timestamp_ind < 0:
+        data[varname+"_time"].append(timestamps[0])
+    else:
+        data[varname+"_time"].append(timestamps[timestamp_ind])
+    data[varname].append(float(line_split[1]))
+    if len(line_split) > 4:
+        _split_line_append_to_data_met_bridge(line_split[4], data, timestamps, timestamp_ind)
 
 def read_met_ntu(varlines, line_indexs, timestamps, time_name=use_time):
     data = {"RH":[], "T":[], "time":[]}

@@ -8,6 +8,13 @@ ST1 = STDATA / "ST_20240326-0330"
 ST2 = STDATA / "ST_20240330-0404"
 RS41DATA = DATA / "RS41"
 EDT = RS41DATA / "EDTdata"
+MIDAS     = DATA / "MIDAS"
+MIDAS_MAT = MIDAS / "mat_file"
+MIDAS_ORI = MIDAS / "origin"
+MIDAS_EXT = MIDAS / "extracted"
+keys = ["P", "T", "RH", "solar"]
+MIDAS_EXT_BRIDGE = {key:MIDAS_EXT / ("bridge_" + key) for key in keys}
+MIDAS_EXT_NTU = MIDAS_EXT / "met_ntu"
 
 PIC  = ROOT / "pic"
 SSPIC = PIC / "snapshot"
