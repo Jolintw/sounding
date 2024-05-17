@@ -15,6 +15,8 @@ MIDAS_EXT = MIDAS / "extracted"
 keys = ["P", "T", "RH", "solar"]
 MIDAS_EXT_BRIDGE = {key:MIDAS_EXT / ("bridge_" + key) for key in keys}
 MIDAS_EXT_NTU = MIDAS_EXT / "met_ntu"
+MIDAS_MIN_MEAN = MIDAS / "minute_averaged"
+MIDAS_MIN_MEAN_BRIDGE = MIDAS_MIN_MEAN / "met_bridge.nc"
 
 PIC  = ROOT / "pic"
 SSPIC = PIC / "snapshot"
