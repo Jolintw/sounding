@@ -2,7 +2,8 @@ import numpy as np
 from mypkgs.plotter.plotter import TwinPlotter
 from mypkgs.plotter.paintbox import Paintbox_1D
 from variable.pathconfig import SSPIC
-from reader.read import get_reader_and_filelist
+from reader.read import get_reader_and_filelist, readall
+from reader.reader import Soundingreader
 from processor.cloudlayer import find_cloud_layer
 from processor.MLH import find_MLH
 from processor.smooth5hPa import smooth_5hPa
@@ -14,33 +15,19 @@ from plotter.snapshot import plot_inversion_line, plot_MLH_line, set_yticks, plo
 # datatype = "ST_L4p"
 datatype = "ST_L4"
 # datatype = "ST_L1"
+data = readall(datatype)
 
 picdir = SSPIC / datatype
-RD, filelist = get_reader_and_filelist(datatype=datatype)
-
-for file in filelist:
-    print(file)
-    if not file.is_file():
-        continue
-    vardict = RD.read(file, datatype)
-    if not vardict:
-        continue
-    firsttime = RD.getfirsttime(vardict)
+for i_time, soundingtime in enumerate(data["soundingtime"][:2]):
+    vardict = data["vars"][i_time]
+    print(soundingtime)
+    firsttime = Soundingreader.getfirsttime(vardict)
     print(firsttime)
-    vardict = smooth_5hPa(vardict)
-    P = vardict["P"]
-    # for key in vardict:
-    #     vardict[key] = vardict[key][P>450]
-    if np.nanmin(vardict["P"]) > 500 or np.nanmax(vardict["P"]) < 950:
-        print("under 500 hPa")
-        continue
 
-    cloud_layer     = find_cloud_layer(vardict["RH"]/100, vardict["height"])
-    inversion_layer = find_inversion_layer(vardict["PT"], vardict["height"], cloud_layer.get_mask_of_layer(vardict["PT"]))
-    MLH_ind         = find_MLH(P=vardict["P"], PT=vardict["PT"], qv=vardict["qv"]*1000)
+    cloud_layer     = data["cloud_layer"][i_time]
+    inversion_layer = data["inversion_layer"][i_time]
+    MLH_ind         = data["MLH_ind"][i_time]
     newX            = create_Parray_asnewX(intv=10, maxP=np.nanmax(vardict["P"]), minP=700)
-    # print(vardict["P"])
-    # print(newX)
     vardict_P10     = interpolate_by(vardict=vardict, Xname="P", newX=newX)
 
     TP    = TwinPlotter(subfigsize_x = 12, subfigsize_y = 12, fontsize=30)
@@ -73,7 +60,7 @@ for file in filelist:
     plot_cloud_layer_mark(plotter=TP, paintbox_1D=Pb1, vardict=vardict, cloud_layer=cloud_layer, subplot_n=0, xposition=0.84)
     set_yticks(plotter=TP, vardict=vardict, ifhticks = True)
 
-    nearest_hour = RD.get_nearest_hour(vardict, 3)
+    nearest_hour = soundingtime
     titlestr = nearest_hour.strftime("%Y%m%d%H")
     TP.title(titlestr=titlestr, y=1.15)
     TP.fig.set_tight_layout(True)
