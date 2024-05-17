@@ -3,7 +3,8 @@ import numpy as np
 from mypkgs.processor.timetools import timestamp_to_datetime
 
 class Soundingreader:
-    def getfirsttime(self, vardict):
+    @staticmethod
+    def getfirsttime(vardict):
         return timestamp_to_datetime(vardict["timestamp"][0])
     
     def get_nearest_hour(self, vardict, hour_intv=3):
