@@ -1,6 +1,6 @@
 import numpy as np
 from pathlib import Path
-from variable.pathconfig import PBL_PAR, BOXPIC
+from variable.pathconfig import PBL_PAR, PBL_PAR_SFC, BOXPIC, BOXPIC_SFC
 from reader.read import get_cotime_datas
 from mypkgs.plotter.plotter import Plotter
 from mypkgs.plotter.paintbox import Paintbox_1D
@@ -15,8 +15,19 @@ def plot_one_axis(data, plotter, axn=0, title = ""):
 
 datas = {}
 datatypes = ["RS41_EDT", "ST_L4p", "ST_L4", "ST_L1"]
+
+sfc_station = None #"bridge", None
+if sfc_station == "bridge":
+    datapath = PBL_PAR_SFC
+    picpath  = BOXPIC_SFC
+else:
+    datapath = PBL_PAR
+    picpath  = BOXPIC
+picpath.mkdir(parents=True, exist_ok=True)
+
+
 for datatype in datatypes:
-    dataarray = np.loadtxt(PBL_PAR / datatype, skiprows=1, delimiter=",")
+    dataarray = np.loadtxt(datapath / datatype, skiprows=1, delimiter=",")
     data = {}
     for i, name in enumerate(["soundingtimestamp", "inversion_height", "MLH", "cloud_top_height", "cloud_bottom_height"]):
         data[name] = dataarray[:, i]
@@ -34,11 +45,11 @@ for i_axis, datatype in enumerate(datatypes):
     plot_one_axis(newdatas[datatype], plotter=Pt, axn=i_axis, title=datatype)
 Pt.set_ylabel("height (m)")
 Pt.set_ylim([0, 5000])
-Pt.savefig(BOXPIC, "cotime_compare")
+Pt.savefig(picpath, "cotime_compare")
 
 for datatype in datatypes:
     Pt = Plotter(column=1, subfigsize_x=5)
     plot_one_axis(datas[datatype], plotter=Pt, axn=0, title=datatype)
     Pt.set_ylabel("height (m)")
     Pt.set_ylim([0, 5000])
-    Pt.savefig(BOXPIC, datatype)
+    Pt.savefig(picpath, datatype)

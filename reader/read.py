@@ -2,18 +2,26 @@ import numpy as np
 from variable.pathconfig import EDT, ST1, ST2
 from reader.ST   import STreader
 from reader.RS41 import RS41reader 
+from reader.MIDAS_averaged_reader import read_minute_met_data_bridge, time_average
 
 from processor.cloudlayer import find_cloud_layer
 from processor.MLH import find_MLH
 from processor.smooth5hPa import smooth_5hPa
 from processor.inversion import find_inversion_layer
+from processor.surface_correction import correct_Psfc
 
 
-def readall(datatype):
+surface_average_time_range = 600 # second
+def readall(datatype, surface=None):
     """
     read all data of specified datatype
     datatype: RS41_EDT, ST_L4p, ST_L4, ST_L1
+    surface: "bridge" default=None
     """
+    if surface == "bridge":
+        surface_data = read_minute_met_data_bridge()
+    else:
+        surface_data = None
     RD, filelist = get_reader_and_filelist(datatype)
     varslist = []
     soundingtimelist = []
@@ -35,14 +43,27 @@ def readall(datatype):
     inds = [ind for _,ind in sorted(zip(soundingtimelist, list(range(len(soundingtimelist)))))]
     print("smooth the sounding")
     datadict["vars"] = [smooth_5hPa(varslist[ind]) for ind in inds]
+    
     datadict["soundingtime"] = sorted(soundingtimelist)
+    datadict["release_time"] = [STreader.getfirsttime(vardict) for vardict in datadict["vars"]]
+    if surface_data:
+        datadict["vars_sfc"] = [time_average(surface_data, surface_data["time"], time.timestamp(), surface_average_time_range) for time in datadict["release_time"]]
+        datadict["vars"] = [correct_Psfc(vars, vars_sfc) for vars, vars_sfc in zip(datadict["vars"], datadict["vars_sfc"])]
+    else:
+        datadict["vars_sfc"] = []
+    
     print("find cloud ...")
     datadict["cloud_layer"] = [find_cloud_layer(RH=vars["RH"]/100, H=vars["height"]) for vars in datadict["vars"]]
     print("find inversion ...")
     tempzip = zip(datadict["vars"], datadict["cloud_layer"])
     datadict["inversion_layer"] = [find_inversion_layer(PT=vars["PT"], H=vars["height"], cloud_mask=cloud.get_mask_of_layer(vars["PT"])) for vars, cloud in tempzip]
     print("find MLH ...")
-    datadict["MLH_ind"] = [find_MLH(P=vars["P"], PT=vars["PT"], qv=vars["qv"]*1000) for vars in datadict["vars"]]
+    datadict["MLH_ind"] = [find_MLH(vars["P"], vars["PT"], vars["qv"]*1000) for vars in datadict["vars"]]
+    # if datadict["vars_sfc"]:
+    #     tempzip = zip(datadict["vars"], datadict["vars_sfc"])
+    #     datadict["MLH_ind"] = [find_MLH(vars["P"], vars["PT"], vars["qv"]*1000, vsfc["P"], vsfc["PT"]) for vars, vsfc in tempzip]
+    # else:
+    #     datadict["MLH_ind"] = [find_MLH(vars["P"], vars["PT"], vars["qv"]*1000) for vars in datadict["vars"]]
     return datadict
 
 def get_reader_and_filelist(datatype):
@@ -89,8 +110,9 @@ def get_cotime_datas(datas):
             tind = find_tind_in_tlist(t, data["soundingtimestamp"])
             for varkey in data:
                 new_data[varkey].append(data[varkey][tind])
-            if isinstance(new_data[varkey][0], (int, float)):
-                new_data[varkey] = np.array(new_data[varkey])
+    for varkey in data:
+        if isinstance(new_data[varkey][0], (int, float)):
+            new_data[varkey] = np.array(new_data[varkey])
     return new_datas
 
 def _get_shortest_time(datas):

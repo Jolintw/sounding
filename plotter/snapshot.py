@@ -52,7 +52,7 @@ def set_yticks(plotter, vardict, subplot_n=0, ifhticks = True):
     vardict_stdlevel = interpolate_by(vardict=vardict, Xname="P", newX=np.array(levels))
     yticks_p = [maxP] + levels
     yticklabels_p = ["{:.1f}".format(ytick) for ytick in yticks_p]
-    yticklabels_h = [vardict["height"][0]] + ["{:.1f}".format(ytick) for ytick in vardict_stdlevel["height"]]
+    yticklabels_h = ["{:.1f}".format(vardict["height"][0])] + ["{:.1f}".format(ytick) for ytick in vardict_stdlevel["height"]]
     if (maxP - 1000) < 10 and maxP > 1000:
         yticklabels_p[0] = ""
         yticklabels_h[0] = ""

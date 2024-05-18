@@ -92,6 +92,7 @@ class STreader(Soundingreader):
         vardict["timestamp"] = vardict["time"] + self.getzerotime_L1(filepath)
         vardict["e"] = vapor_pressure_from_mixingratio(qv=vardict["qv"], P=vardict["P"], qvunit="kg/kg", Punit="hPa")
         vardict["height"] = calculate_geopotential_height(P=vardict["P"], T=vardict["T"], e=vardict["e"], Punit="hPa", Tunit="degC", eunit="Pa")
+        vardict["height"] = self._height_modify(vardict["height"], release_height)
         return vardict
     
     def getL4p_PBLlist(self, STpath = None):

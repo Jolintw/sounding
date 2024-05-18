@@ -1,13 +1,20 @@
 import numpy as np
 from reader.read import readall
-from variable.pathconfig import PBL_PAR
+from variable.pathconfig import PBL_PAR, PBL_PAR_SFC
 
-# datatype = "RS41_EDT"
-datatype = "ST_L4p"
-datatype = "ST_L4"
-datatype = "ST_L1"
+datatype = "RS41_EDT"
+# datatype = "ST_L4p"
+# datatype = "ST_L4"
+# datatype = "ST_L1"
 
-data = readall(datatype=datatype)
+sfc_station = "bridge" #"bridge", None
+if sfc_station == "bridge":
+    savepath = PBL_PAR_SFC
+else:
+    savepath = PBL_PAR
+savepath.mkdir(parents=True, exist_ok=True)
+
+data = readall(datatype=datatype, surface=sfc_station)
 data["soundingtimestamp"]   = [time.timestamp() for time in data["soundingtime"]]
 data["inversion_ind"]       = [inversion.PBL_ind for inversion in data["inversion_layer"]]
 data["inversion_height"]    = [vardict["height"][ind] for vardict, ind in zip(data["vars"], data["inversion_ind"])]
@@ -32,6 +39,6 @@ for i_line in range(len(data["soundingtimestamp"])):
     lines += "{:20.1f},{:19.1f},{:10.1f},{:19.1f},{:22.1f}\n".format(*value)
 lines = lines[:-1]
 PBL_PAR.mkdir(parents=True, exist_ok=True)
-f = open(PBL_PAR / datatype, "w")
+f = open(savepath / datatype, "w")
 f.writelines(lines)
 f.close()
