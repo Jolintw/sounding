@@ -42,6 +42,15 @@ def plot_cloud_layer_mark(plotter, paintbox_1D, vardict, cloud_layer, subplot_n=
     p = paintbox_1D.plotmark_y(Y=P_5_cloud, xposition=xposition, ax=plotter.axs[subplot_n][0], color="tab:blue")
     return p
 
+def plot_LCL_line(plotter, LCL_P, subplot_n=0, xposition=0, color="pink"):
+    """
+    xposition: position of text in x axis range 0~1
+    """
+    ax = plotter.axs[subplot_n][0]
+    textx = calculate_x(ax, xposition)
+    line_inv = plotter.hline(LCL_P, color=color, linestyle="dashed", axn=(subplot_n,0))
+    ax.text(textx, LCL_P+5, "LCL", verticalalignment="top", color=line_inv[0].get_color(), fontsize=plotter.fontsize)
+
 def set_yticks(plotter, vardict, subplot_n=0, ifhticks = True):
     maxP = np.nanmax(vardict["P"])
     if maxP > 1000:

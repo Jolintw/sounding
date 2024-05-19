@@ -1,4 +1,6 @@
 import numpy as np
+from mypkgs.processor.numericalmethod import RightAngleInterpolater
+from atmospkg.calculation import calculate_LCL
 from variable.pathconfig import EDT, ST1, ST2
 from reader.ST   import STreader
 from reader.RS41 import RS41reader 
@@ -38,9 +40,9 @@ def readall(datatype, surface=None):
             continue
         varslist.append(vardict)
         soundingtimelist.append(RD.get_nearest_hour(varslist[-1]))
-        # print(soundingtimelist[-1])
     datadict = {}
     inds = [ind for _,ind in sorted(zip(soundingtimelist, list(range(len(soundingtimelist)))))]
+
     print("smooth the sounding")
     datadict["vars"] = [smooth_5hPa(varslist[ind]) for ind in inds]
     
@@ -54,9 +56,11 @@ def readall(datatype, surface=None):
     
     print("find cloud ...")
     datadict["cloud_layer"] = [find_cloud_layer(RH=vars["RH"]/100, H=vars["height"]) for vars in datadict["vars"]]
+
     print("find inversion ...")
     tempzip = zip(datadict["vars"], datadict["cloud_layer"])
     datadict["inversion_layer"] = [find_inversion_layer(PT=vars["PT"], H=vars["height"], cloud_mask=cloud.get_mask_of_layer(vars["PT"])) for vars, cloud in tempzip]
+
     print("find MLH ...")
     datadict["MLH_ind"] = [find_MLH(vars["P"], vars["PT"], vars["qv"]*1000) for vars in datadict["vars"]]
     # if datadict["vars_sfc"]:
@@ -64,6 +68,14 @@ def readall(datatype, surface=None):
     #     datadict["MLH_ind"] = [find_MLH(vars["P"], vars["PT"], vars["qv"]*1000, vsfc["P"], vsfc["PT"]) for vars, vsfc in tempzip]
     # else:
     #     datadict["MLH_ind"] = [find_MLH(vars["P"], vars["PT"], vars["qv"]*1000) for vars in datadict["vars"]]
+
+    print("find LCL ...")
+    datadict["LCL_P"] = [calculate_LCL(vars["P"][0], vars["T"][0], vars["qv"][0], 1, Tunit="degC", Punit="hPa") for vars in datadict["vars"]]
+    datadict["LCL_P"] = [_P / 100 for _P in datadict["LCL_P"]] #convert to hPa
+    datadict["LCL_height"] = []
+    for LCL_P, vars in zip(datadict["LCL_P"], datadict["vars"]):
+        RIA = RightAngleInterpolater(X=vars["P"], newX=LCL_P, equidistance = False)
+        datadict["LCL_height"].append(RIA.interpolate(vars["height"]))
     return datadict
 
 def get_reader_and_filelist(datatype):

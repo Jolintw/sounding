@@ -5,7 +5,7 @@ from variable.pathconfig import SSPIC, SSPIC_SFC
 from reader.read import readall
 from reader.reader import Soundingreader
 from processor.interpolate import interpolate_by, create_Parray_asnewX
-from plotter.snapshot import plot_inversion_line, plot_MLH_line, set_yticks, plot_cloud_layer_mark
+from plotter.snapshot import plot_inversion_line, plot_MLH_line, set_yticks, plot_cloud_layer_mark, plot_LCL_line
 
 
 datatype = "RS41_EDT" 
@@ -34,6 +34,8 @@ for i_time, soundingtime in enumerate(data["soundingtime"]):
     cloud_layer     = data["cloud_layer"][i_time]
     inversion_layer = data["inversion_layer"][i_time]
     MLH_ind         = data["MLH_ind"][i_time]
+    LCL_P           = data["LCL_P"][i_time]
+    # print(LCL_P)
     newX            = create_Parray_asnewX(intv=10, maxP=np.nanmax(vardict["P"]), minP=700)
     vardict_P10     = interpolate_by(vardict=vardict, Xname="P", newX=newX)
 
@@ -72,6 +74,7 @@ for i_time, soundingtime in enumerate(data["soundingtime"]):
     plot_MLH_line(plotter=TP, vardict=vardict, MLH_ind=MLH_ind, subplot_n=0, xposition=0.04)
     plot_inversion_line(plotter=TP, vardict=vardict, inversion_layer=inversion_layer, subplot_n=0, xposition=0.04)
     plot_cloud_layer_mark(plotter=TP, paintbox_1D=Pb1, vardict=vardict, cloud_layer=cloud_layer, subplot_n=0, xposition=0.84)
+    plot_LCL_line(plotter=TP, LCL_P=LCL_P, subplot_n=0, xposition=0.04)
     set_yticks(plotter=TP, vardict=vardict, ifhticks = True)
 
     nearest_hour = soundingtime
