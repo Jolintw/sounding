@@ -2,10 +2,13 @@ import numpy as np
 from processor.interpolate import interpolate_by,  create_Parray_asnewX
 
 
-def calculate_x(ax, xposition):
-    xlim = ax.get_xlim()
-    x = xlim[0] + (xlim[1] - xlim[0]) * xposition
-    return x
+def plot_variable(plotter, paintbox, varname, sub_num = 0, xlim = None, Yname = "P", **plotpars):
+    if xlim:
+        plotter.set_xlim(xlim=xlim, axn=(sub_num,varname))
+    line2D = paintbox.plot(Xname=varname, Yname=Yname, ax=plotter.axs[sub_num][varname], label=varname)
+    line2D[0].set(**plotpars)
+    plotter.axs[sub_num][varname].tick_params(axis='x', colors=line2D[0].get_color())
+    return line2D
 
 def plot_MLH_line(plotter, vardict, MLH_ind, subplot_n=0, xposition=0, color="indigo"):
     """
@@ -71,3 +74,8 @@ def set_yticks(plotter, vardict, subplot_n=0, ifhticks = True):
         plotter.twin(xy="x")
         plotter.set_ylim(plotter.axs[subplot_n][0].get_ylim(), axn=(subplot_n, -1))
         plotter.set_yticks(yticks_p, yticklabels_h, axn = (subplot_n, -1))
+
+def calculate_x(ax, xposition):
+    xlim = ax.get_xlim()
+    x = xlim[0] + (xlim[1] - xlim[0]) * xposition
+    return x
