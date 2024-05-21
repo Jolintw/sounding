@@ -11,6 +11,7 @@ from processor.MLH import find_MLH
 from processor.smooth5hPa import smooth_5hPa
 from processor.inversion import find_inversion_layer
 from processor.surface_correction import correct_Psfc
+from processor.normalize_height import get_normalized_height, equidistance_normalized_coordinate
 
 
 surface_average_time_range = 600 # second
@@ -69,13 +70,24 @@ def readall(datatype, surface=None):
     # else:
     #     datadict["MLH_ind"] = [find_MLH(vars["P"], vars["PT"], vars["qv"]*1000) for vars in datadict["vars"]]
 
+    print("normalize height ...")
+    tempzip = zip(datadict["vars"], datadict["MLH_ind"], datadict["inversion_layer"])
+    normalized_height = [get_normalized_height(vardict["height"], MLH, inversion) for vardict, MLH, inversion in tempzip]
+    for i in range(len(normalized_height)):
+        datadict["vars"][i]["normalized_height"] = normalized_height[i]
+    tempzip = zip(datadict["vars"], datadict["vars"])
+    datadict["vars_normalized_height"]   = [equidistance_normalized_coordinate(vars, vars["normalized_height"]) for vars in datadict["vars"]]
+
     print("find LCL ...")
     datadict["LCL_P"] = [calculate_LCL(vars["P"][0], vars["T"][0], vars["qv"][0], 1, Tunit="degC", Punit="hPa") for vars in datadict["vars"]]
     datadict["LCL_P"] = [_P / 100 for _P in datadict["LCL_P"]] #convert to hPa
     datadict["LCL_height"] = []
+    datadict["LCL_normalized_height"] = []
     for LCL_P, vars in zip(datadict["LCL_P"], datadict["vars"]):
         RIA = RightAngleInterpolater(X=vars["P"], newX=LCL_P, equidistance = False)
         datadict["LCL_height"].append(RIA.interpolate(vars["height"]))
+        datadict["LCL_normalized_height"].append(RIA.interpolate(vars["normalized_height"]))
+
     return datadict
 
 def get_reader_and_filelist(datatype):
