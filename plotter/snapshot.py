@@ -17,8 +17,8 @@ def plot_MLH_line(plotter, vardict, MLH_ind, subplot_n=0, xposition=0, color="in
     ax = plotter.axs[subplot_n][0]
     textx = calculate_x(ax, xposition)
     MLH_P = vardict["P"][MLH_ind]
-    line_MLH = plotter.hline(MLH_P, color=color, axn=(0,0))
-    ax.text(textx, MLH_P+5, "MLH", verticalalignment="top", color=line_MLH[0].get_color(), fontsize=plotter.fontsize)
+    line = plotter.hline(MLH_P, color=color, axn=(0,0))
+    ax.text(textx, MLH_P+5, "MLH", verticalalignment="top", color=line[0].get_color(), fontsize=plotter.fontsize)
 
 def plot_inversion_line(plotter, vardict, inversion_layer, subplot_n=0, xposition=0, color="dimgrey"):
     """
@@ -27,13 +27,9 @@ def plot_inversion_line(plotter, vardict, inversion_layer, subplot_n=0, xpositio
     ax = plotter.axs[subplot_n][0]
     textx = calculate_x(ax, xposition)
     inversion_ind = inversion_layer.PBL_ind
-    # strongest_inversion = np.argmax(inversion_layer.top_PT - inversion_layer.bottom_PT)
-    # bottom_P = vardict["P"][inversion_layer.bottom_ind[strongest_inversion]]
-    # top_P = vardict["P"][inversion_layer.top_ind[strongest_inversion]]
-    # strongest_inversion_P = (bottom_P + top_P) / 2
     inversion_P = vardict["P"][inversion_ind]
-    line_inv = plotter.hline(inversion_P, color=color, linestyle="dashed", axn=(subplot_n,0))
-    ax.text(textx, inversion_P+5, "inversion", verticalalignment="top", color=line_inv[0].get_color(), fontsize=plotter.fontsize)
+    line = plotter.hline(inversion_P, color=color, linestyle="dashed", axn=(subplot_n,0))
+    ax.text(textx, inversion_P+5, "inversion", verticalalignment="top", color=line[0].get_color(), fontsize=plotter.fontsize)
 
 def plot_cloud_layer_mark(plotter, paintbox_1D, vardict, cloud_layer, subplot_n=0, xposition=0.84):
     top_P    = vardict["P"][cloud_layer.top_ind]
@@ -51,8 +47,23 @@ def plot_LCL_line(plotter, LCL_P, subplot_n=0, xposition=0, color="pink"):
     """
     ax = plotter.axs[subplot_n][0]
     textx = calculate_x(ax, xposition)
-    line_inv = plotter.hline(LCL_P, color=color, linestyle="dashed", axn=(subplot_n,0))
-    ax.text(textx, LCL_P+5, "LCL", verticalalignment="top", color=line_inv[0].get_color(), fontsize=plotter.fontsize)
+    line = plotter.hline(LCL_P, color=color, linestyle="dashed", axn=(subplot_n,0))
+    ylim = ax.get_ylim()
+    textshift = (ylim[1] - ylim[0]) / 60
+    ax.text(textx, LCL_P-textshift, "LCL", verticalalignment="top", color=line[0].get_color(), fontsize=plotter.fontsize)
+
+def plot_CTH_CBH_line(plotter, CTH, CBH, subplot_n=0, xposition=0, color="black"):
+    """
+    xposition: position of text in x axis range 0~1
+    """
+    ax = plotter.axs[subplot_n][0]
+    textx = calculate_x(ax, xposition)
+    line_CTH = plotter.hline(CTH, color=color, linestyle="dashed", axn=(subplot_n,0))
+    line_CBH = plotter.hline(CBH, color=color, linestyle="dashed", axn=(subplot_n,0))
+    ylim = ax.get_ylim()
+    textshift = (ylim[1] - ylim[0]) / 60
+    ax.text(textx, CTH-textshift, "CTH", verticalalignment="top", color=line_CTH[0].get_color(), fontsize=plotter.fontsize)
+    ax.text(textx, CBH-textshift, "CBH", verticalalignment="top", color=line_CBH[0].get_color(), fontsize=plotter.fontsize)
 
 def set_yticks(plotter, vardict, subplot_n=0, ifhticks = True):
     maxP = np.nanmax(vardict["P"])
