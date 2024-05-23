@@ -3,7 +3,7 @@ from datetime import datetime as dd
 
 import numpy as np
 
-from atmospkg.calculation import saturation_mixingratio, wswd_to_uv, potential_temperature
+from atmospkg.calculation import saturation_mixingratio, wswd_to_uv, potential_temperature, equivalent_potential_temperature
 from reader.reader import Soundingreader
 
 class RS41reader(Soundingreader):
@@ -43,6 +43,7 @@ class RS41reader(Soundingreader):
         vardict["qvs"] = saturation_mixingratio(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
         vardict["qv"]  = vardict["qvs"] * vardict["RH"] / 100
         vardict["PT"]  = potential_temperature(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
+        vardict["EPT"] = equivalent_potential_temperature(vardict["T"], vardict["P"], vardict["qv"], Tunit="degC", Punit="hPa", qvunit="kg/kg")
         vardict["U"], vardict["V"] = wswd_to_uv(vardict["WS"], vardict["WD"], wdunit="deg")
         vardict["timestamp"] = vardict["time"] + self.getzerotimefromfile(filepath)
         

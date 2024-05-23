@@ -2,7 +2,8 @@ from datetime import datetime as dd
 
 import numpy as np
 
-from atmospkg.calculation import saturation_mixingratio, potential_temperature, wswd_to_uv, vapor_pressure_from_mixingratio, calculate_geopotential_height
+from atmospkg.calculation import saturation_mixingratio, potential_temperature, wswd_to_uv
+from atmospkg.calculation import vapor_pressure_from_mixingratio, calculate_geopotential_height, equivalent_potential_temperature
 from reader.reader import Soundingreader
 
 release_height = 6 # the height of the place to release balloon (meter)
@@ -44,6 +45,7 @@ class STreader(Soundingreader):
             vardict[key] = np.loadtxt(filepath, skiprows=14+launch_index, unpack=True, usecols=(value))
         vardict["qv"]        = saturation_mixingratio(vardict["Td"], vardict["P"], Tunit="degC", Punit="hPa")
         vardict["PT"]        = potential_temperature(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
+        vardict["EPT"] = equivalent_potential_temperature(vardict["T"], vardict["P"], vardict["qv"], Tunit="degC", Punit="hPa", qvunit="kg/kg")
         vardict["height"]    = self._height_modify(vardict["height"], release_height)
         zerotime = self.getzerotime(filepath)
         vardict["timestamp"] = zerotime + vardict["time"]
@@ -66,6 +68,7 @@ class STreader(Soundingreader):
             print("error")
         vardict["qv"]        = saturation_mixingratio(vardict["Td"], vardict["P"], Tunit="degC", Punit="hPa")
         vardict["PT"]        = potential_temperature(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
+        vardict["EPT"] = equivalent_potential_temperature(vardict["T"], vardict["P"], vardict["qv"], Tunit="degC", Punit="hPa", qvunit="kg/kg")
         vardict["height"]    = self._height_modify(vardict["height"], release_height)
         zerotime = self.getzerotime(filepath)
         vardict["timestamp"] = zerotime + vardict["time"]
@@ -88,6 +91,7 @@ class STreader(Soundingreader):
         vardict["qvs"] = saturation_mixingratio(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
         vardict["qv"]  = vardict["qvs"] * vardict["RH"] / 100
         vardict["PT"]  = potential_temperature(vardict["T"], vardict["P"], Tunit="degC", Punit="hPa")
+        vardict["EPT"] = equivalent_potential_temperature(vardict["T"], vardict["P"], vardict["qv"], Tunit="degC", Punit="hPa", qvunit="kg/kg")
         vardict["U"], vardict["V"] = wswd_to_uv(vardict["WS"], vardict["WD"], wdunit="deg")
         vardict["timestamp"] = vardict["time"] + self.getzerotime_L1(filepath)
         vardict["e"] = vapor_pressure_from_mixingratio(qv=vardict["qv"], P=vardict["P"], qvunit="kg/kg", Punit="hPa")

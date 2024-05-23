@@ -1,5 +1,5 @@
 import numpy as np
-from mypkgs.processor.numericalmethod import RightAngleInterpolater
+from mypkgs.processor.numericalmethod import RightAngleInterpolater, central_diff
 from atmospkg.calculation import calculate_LCL
 from variable.pathconfig import EDT, ST1, ST2
 from reader.ST   import STreader
@@ -55,6 +55,9 @@ def readall(datatype, surface=None):
     else:
         datadict["vars_sfc"] = []
     
+    for vars in datadict["vars"]:
+        vars["dEPTdz"] = central_diff(Y=vars["EPT"], X=vars["height"])
+
     print("find cloud ...")
     datadict["cloud_layer"] = [find_cloud_layer(RH=vars["RH"]/100, H=vars["height"]) for vars in datadict["vars"]]
 
@@ -89,6 +92,9 @@ def readall(datatype, surface=None):
         datadict["LCL_normalized_height"].append(RIA.interpolate(vars["normalized_height"]))
 
     return datadict
+
+def var_in_dictlist_to_varlist(dictlist, varname):
+    varlist = [vardict[varname] for vardict in dictlist]
 
 def get_reader_and_filelist(datatype):
     if datatype == "RS41_EDT":
