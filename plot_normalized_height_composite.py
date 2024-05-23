@@ -4,10 +4,7 @@ from mypkgs.plotter.paintbox import Paintbox_1D
 from mypkgs.processor.numericalmethod import RightAngleInterpolater
 from variable.pathconfig import NORMALHPIC, NORMALHPIC_SFC
 from reader.read import readall
-from reader.reader import Soundingreader
-from processor.interpolate import interpolate_by, create_Parray_asnewX
 from plotter.snapshot import plot_variable, plot_LCL_line, plot_CTH_CBH_line
-from pathlib import Path
 
 
 datatype = "RS41_EDT" 
