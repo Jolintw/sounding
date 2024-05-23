@@ -40,7 +40,7 @@ def readall(datatype, surface=None, timerange = []):
         if np.nanmin(vardict["P"]) > 500 or np.nanmax(vardict["P"]) < 950:
             print("under 500 hPa")
             continue
-        soundingtime = RD.get_nearest_hour(varslist[-1])
+        soundingtime = RD.get_nearest_hour(vardict)
         if timerange:
             if soundingtime > timerange[1] or soundingtime < timerange[0]:
                 continue
