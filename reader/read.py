@@ -15,11 +15,12 @@ from processor.normalize_height import get_normalized_height, equidistance_norma
 
 
 surface_average_time_range = 600 # second
-def readall(datatype, surface=None):
+def readall(datatype, surface=None, timerange = []):
     """
     read all data of specified datatype
     datatype: RS41_EDT, ST_L4p, ST_L4, ST_L1
     surface: "bridge" default=None
+    timerange: [startdatetime, enddatetime] won't read sounding out of range
     """
     if surface == "bridge":
         surface_data = read_minute_met_data_bridge()
@@ -39,8 +40,12 @@ def readall(datatype, surface=None):
         if np.nanmin(vardict["P"]) > 500 or np.nanmax(vardict["P"]) < 950:
             print("under 500 hPa")
             continue
+        soundingtime = RD.get_nearest_hour(varslist[-1])
+        if timerange:
+            if soundingtime > timerange[1] or soundingtime < timerange[0]:
+                continue
         varslist.append(vardict)
-        soundingtimelist.append(RD.get_nearest_hour(varslist[-1]))
+        soundingtimelist.append(soundingtime)
     datadict = {}
     inds = [ind for _,ind in sorted(zip(soundingtimelist, list(range(len(soundingtimelist)))))]
 
