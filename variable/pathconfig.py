@@ -25,6 +25,8 @@ SSPIC_SFC = PIC / "snapshot_sfc"
 BOXPIC_SFC = PIC / "parameter_boxplot_sfc"
 NORMALHPIC = PIC / "normalized_height_composite"
 NORMALHPIC_SFC = PIC / "normalized_height_composite_sfc"
+TIMESERIES_2D = PIC / "timeseries_2d"
+TIMESERIES_2D_SFC = PIC / "timeseries_2d_sfc"
 
 OUT = ROOT / "out"
 PBL_PAR = OUT / "PBL_parameters"

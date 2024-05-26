@@ -51,7 +51,6 @@ def readall(datatype, surface=None, timerange = []):
 
     print("smooth the sounding")
     datadict["vars"] = [smooth_5hPa(varslist[ind]) for ind in inds]
-    
     datadict["soundingtime"] = sorted(soundingtimelist)
     datadict["release_time"] = [STreader.getfirsttime(vardict) for vardict in datadict["vars"]]
     if surface_data:
