@@ -13,9 +13,23 @@ def plot_one_axis(data, plotter, axn=0, title = ""):
     plotter.title(title, axn=axn)
     return Pb
 
+def get_timemask(time, eddyflag):
+    timefmt = "%Y%m%d%H%z"
+    time0 = dd.strptime("2024032815+0000", timefmt).timestamp()
+    time1 = dd.strptime("2024033006+0000", timefmt).timestamp()
+
+    if eddyflag == "eddy":
+        timemask = np.logical_and(time >= time0, time <= time1)
+    elif eddyflag == "noneddy":
+        timemask = np.logical_or(time < time0, time > time1)
+    elif eddyflag is None:
+        timemask = np.ones_like(time, dtype=bool)
+    return timemask
+
 datas = {}
 datatypes = ["RS41_EDT", "ST_L4p", "ST_L4", "ST_L1"]
 
+eddy        = "eddy" # "noneddy", None
 sfc_station = None #"bridge", None
 if sfc_station == "bridge":
     datapath = PBL_PAR_SFC
@@ -23,8 +37,10 @@ if sfc_station == "bridge":
 else:
     datapath = PBL_PAR
     picpath  = BOXPIC
-picpath.mkdir(parents=True, exist_ok=True)
+if eddy:
+    picpath = picpath / eddy
 
+picpath.mkdir(parents=True, exist_ok=True)
 
 for datatype in datatypes:
     dataarray = np.loadtxt(datapath / datatype, skiprows=1, delimiter=",")
@@ -35,6 +51,9 @@ for datatype in datatypes:
     cloud_mask = np.logical_or(data["cloud_bottom_height"] < 0, data["cloud_bottom_height"] >= 5000)
     data["cloud_top_height"][cloud_mask] = np.nan
     data["cloud_bottom_height"][cloud_mask] = np.nan
+    timemask = get_timemask(data["soundingtimestamp"], eddyflag=eddy)
+    for key in data:
+        data[key] = data[key][timemask]
     datas[datatype] = data
 
 newdatas = get_cotime_datas(datas)
