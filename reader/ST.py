@@ -48,17 +48,17 @@ class STreader(Soundingreader):
         vardict["EPT"] = equivalent_potential_temperature(vardict["T"], vardict["P"], vardict["qv"], Tunit="degC", Punit="hPa", qvunit="kg/kg")
         vardict["height"]    = self._height_modify(vardict["height"], release_height)
         zerotime = self.getzerotime(filepath)
-        vardict["timestamp"] = zerotime + vardict["time"]
+        vardict["timestamp"] = zerotime + vardict["time"] - time[0] # zerotime in L4p is not "zero" but first "Time"
         return vardict
     
     def readL4(self, filepath):
         varnamedict = {"time":0, "P":4, "T":5, "Td":6, "RH":7, "U":8, "V":9, "WS":10, "WD":11, "Lon":14, "lat":15, "height":13}
         vardict = {}
-        P = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(4))
+        time, P = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(varnamedict["time"], varnamedict["P"]))
         if not self._check_data(P):
             return vardict
         # P = np.loadtxt(filepath, skiprows=14, unpack=True, usecols=(0))
-        launch_index = self._findlaunchindex_second(P)
+        launch_index = self._findlaunchindex_second(P, time)
         for key, value in varnamedict.items():
             vardict[key] = np.loadtxt(filepath, skiprows=14+launch_index, unpack=True, usecols=(value))
         ind_upward = self._keepupward_ind(vardict["P"])
@@ -77,10 +77,10 @@ class STreader(Soundingreader):
     def readL1(self, filepath):
         varnamedict = {"time":0, "P":2, "T":3, "RH":4, "WS":5, "WD":6, "Lon":7, "lat":8}
         vardict = {}
-        P = np.loadtxt(filepath, delimiter=",", skiprows=1, unpack=True, usecols=(varnamedict["P"]))
+        time, P = np.loadtxt(filepath, delimiter=",", skiprows=1, unpack=True, usecols=(varnamedict["time"], varnamedict["P"]))
         if not self._check_data(P):
             return vardict
-        launch_index = self._findlaunchindex_second(P)
+        launch_index = self._findlaunchindex_second(P, time)
         for key, value in varnamedict.items():
             vardict[key] = np.loadtxt(filepath, delimiter=",", skiprows=1+launch_index, unpack=True, usecols=(value))
         ind_upward = self._keepupward_ind(vardict["P"])
@@ -144,11 +144,11 @@ class STreader(Soundingreader):
                 if np.mean(dts[i_dt+1:i_dt+11]) < 5:
                     return i_dt
     
-    def _findlaunchindex_second(self, P):
+    def _findlaunchindex_second(self, P, time):
         dPs = P[1:] - P[:-1]
         for i_dP, dP in enumerate(dPs):
             if dP < -0.1:
-                if np.mean(dPs[i_dP+1:i_dP+11]) < -0.2:
+                if np.sum(dPs[i_dP+1:i_dP+51] < -0.2) >= 25 and (time[i_dP+50] - time[i_dP]) < 100:
                     return i_dP
 
     def _height_modify(self, height, release_height):

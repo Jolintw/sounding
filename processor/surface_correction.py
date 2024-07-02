@@ -9,6 +9,7 @@ def correct_Psfc(vardict, var_sfc):
     mask = P < sfc_P
     for key in vardict:
         vardict[key] = vardict[key][mask]
-    bias = vardict["height"][0] - release_height
-    vardict["height"] = vardict["height"] - bias
+    if not np.all(mask):
+        bias = vardict["height"][0] - release_height
+        vardict["height"] = vardict["height"] - bias
     return vardict

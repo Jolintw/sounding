@@ -31,16 +31,17 @@ def readall(datatype, surface=None, timerange = []):
     soundingtimelist = []
     print("read file of {:s} ...".format(datatype))
     for file in filelist:
-        # print(file)
+        print(file)
         if not file.is_file():
             continue
         vardict = RD.read(file, datatype=datatype)
         if not vardict:
             continue
+        soundingtime = RD.get_nearest_hour(vardict)
+        print(soundingtime)
         if np.nanmin(vardict["P"]) > 500 or np.nanmax(vardict["P"]) < 950:
             print("under 500 hPa")
             continue
-        soundingtime = RD.get_nearest_hour(vardict)
         if timerange:
             if soundingtime > timerange[1] or soundingtime < timerange[0]:
                 continue
