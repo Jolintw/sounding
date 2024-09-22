@@ -5,6 +5,7 @@ from processor.layerfunction import Layer
 def find_inversion_layer(PT, H, cloud_mask):
     """
     Heffter method (Heffter 1980; Sivaraman et al. 2013)
+    Sivaraman et al. 2013: https://www.arm.gov/publications/tech_reports/doe-sc-arm-tr-132.pdf
     PT: K
     H: meter
     """
